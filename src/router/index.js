@@ -1,75 +1,70 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import WelcomeView from '../views/WelcomeView'
-import Chatroom from '../views/ChatRoom'
-import useValidate from '../auth/validate'
+import { createRouter, createWebHistory } from 'vue-router';
+import WelcomeView from '../views/WelcomeView.vue';
+import ChatRoom from '../views/ChatRoom.vue';
+import useValidate from '../auth/validate';
 
-Vue.use(VueRouter)
-
-const { error, validate } = useValidate()
+const { error, validate } = useValidate();
 
 const requireAuth = async (to, from, next) => {
-  const uid = window.localStorage.getItem('uid')
-  const client = window.localStorage.getItem('client')
-  const accessToken = window.localStorage.getItem('access-token')
+  const uid = window.localStorage.getItem('uid');
+  const client = window.localStorage.getItem('client');
+  const accessToken = window.localStorage.getItem('access-token');
 
   if (!uid || !client || !accessToken) {
-    console.log('ログインしていません')
-    next({ name: 'Welcome' })
-    return
+    console.log('ログインしていません');
+    next({ name: 'WelcomeView' });
+    return;
   }
 
-  await validate()
+  await validate();
 
   if (error.value) {
-    console.log('認証に失敗しました')
-    next({ name: 'Welcome' })
+    console.log('認証に失敗しました');
+    next({ name: 'WelcomeView' });
   } else {
-    next()
+    next();
   }
-
-  next()
-}
+};
 
 const noRequireAuth = async (to, from, next) => {
-  const uid = window.localStorage.getItem('uid')
-  const client = window.localStorage.getItem('client')
-  const accessToken = window.localStorage.getItem('access-token')
+  const uid = window.localStorage.getItem('uid');
+  const client = window.localStorage.getItem('client');
+  const accessToken = window.localStorage.getItem('access-token');
 
   if (!uid && !client && !accessToken) {
-    next()
-    return
+    next();
+    return;
   }
 
-  await validate()
+  await validate();
 
   if (!error.value) {
-    next({ name: 'Chatroom' })
+    next({ name: 'Chatroom' });
   } else {
-    next()
+    next();
   }
-}
+};
 
+// ルートの定義
 const routes = [
   {
     path: '/',
     name: 'WelcomeView',
     component: WelcomeView,
-    beforeEnter: noRequireAuth
+    beforeEnter: noRequireAuth,
   },
-  
   {
     path: '/chatroom',
     name: 'Chatroom',
-    component: Chatroom,
-    beforeEnter: requireAuth
-  }
-]
+    component: ChatRoom,
+    beforeEnter: requireAuth,
+  },
+];
 
-const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes
-})
+// Vue Router のインスタンスを作成
+const router = createRouter({
+  history: createWebHistory(process.env.BASE_URL),
+  routes,
+});
 
-export default router
+export default router;

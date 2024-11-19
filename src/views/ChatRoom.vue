@@ -11,11 +11,10 @@ import NavigationBar from '../components/NavigationBar.vue'
 import ChatWindow from '../components/ChatWindow.vue'
 import NewChatForm from '../components/NewChatForm.vue'
 import axios from 'axios'
-import { createConsumer } from '@rails/actioncable'
+import ActionCable from 'actioncable'
 
 export default {
-  components: { NavigationBar,ChatWindow,NewChatForm },
-  
+  components: { NavigationBar, ChatWindow, NewChatForm },
   data () {
     return {
       messages: [],
