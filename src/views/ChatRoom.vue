@@ -2,16 +2,20 @@
   <div class="container">
     <NavigationBar />
     <ChatWindow :messages="messages" />
+    <NewChatForm @connectCable="connectCable" />
   </div>
 </template>
 
 <script>
 import NavigationBar from '../components/NavigationBar.vue'
-import ChatWindow from '../components/ChatWindow'
+import ChatWindow from '../components/ChatWindow.vue'
+import NewChatForm from '../components/NewChatForm.vue'
 import axios from 'axios'
+import { createConsumer } from '@rails/actioncable'
 
 export default {
-  components: { NavigationBar,ChatWindow },
+  components: { NavigationBar,ChatWindow,NewChatForm },
+  
   data () {
     return {
       messages: [],
@@ -32,12 +36,29 @@ export default {
         }
         this.messages = res.data
       } catch (err) {
-        console.log(err)
+        this.error = 'メッセージ一覧を取得できませんでした'
       }
     },
+    connectCable (message) {
+      this.messageChannel.perform('receive', {
+        message: message,
+        email: window.localStorage.getItem('uid')
+      })
+    }
   },
-  mounted() {
-    this.getMessages()
+  mounted () {
+    const cable = ActionCable.createConsumer('ws://localhost:3000/cable')
+    this.messageChannel = cable.subscriptions.create('RoomChannel', {
+      connected: () => {
+        this.getMessages()
+      },
+      received: () => {
+        this.getMessages()
+      }
+    })
+  },
+  beforeUnmount () { 
+    this.messageChannel.unsubscribe()
   }
 }
 </script>
